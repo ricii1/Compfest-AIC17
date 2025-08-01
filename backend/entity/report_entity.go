@@ -1,0 +1,27 @@
+package entity
+
+type ReportStatus string
+
+const (
+	StatusUnverified ReportStatus = "unverified"
+	StatusVerified   ReportStatus = "verified"
+	StatusRejected   ReportStatus = "rejected"
+	StatusHandled    ReportStatus = "handled"
+	StatusCompleted  ReportStatus = "completed"
+)
+
+type Report struct {
+	ID             string       `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Text           string       `gorm:"type:text" json:"text"`
+	Image          *[]byte      `gorm:"type:text" json:"image"`
+	Status         ReportStatus `gorm:"type:varchar(50);not null;default:'unverified'" json:"status"`
+	PredConfidence *int         `gorm:"" json:"pred_confidence"`
+
+	UserID string `gorm:"type:char(32);not null"`
+	User   User   `gorm:"foreignKey:UserID"`
+
+	TagID string `gorm:"type:char(32);not null"`
+	Tag   Tag    `gorm:"foreignKey:TagID"`
+
+	Timestamp
+}
