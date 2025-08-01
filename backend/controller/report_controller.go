@@ -12,6 +12,7 @@ import (
 type (
 	ReportController interface {
 		CreateReport(ctx *gin.Context)
+		GetAllReports(ctx *gin.Context)
 	}
 
 	reportController struct {
@@ -41,5 +42,23 @@ func (c *reportController) CreateReport(ctx *gin.Context) {
 	}
 
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_SEND_REPORT, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *reportController) GetAllReports(ctx *gin.Context) {
+	var req dto.PaginationRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	reports, err := c.reportService.GetAllReports(ctx.Request.Context(), req)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_REPORTS, err.Error(), nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_REPORTS, reports)
 	ctx.JSON(http.StatusOK, res)
 }

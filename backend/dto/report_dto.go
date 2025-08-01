@@ -3,24 +3,28 @@ package dto
 import (
 	"errors"
 	"mime/multipart"
+
+	"github.com/Caknoooo/go-gin-clean-starter/entity"
 )
 
 const (
 	// Failed
 	MESSAGE_FAILED_SEND_REPORT = "gagal mengirim laporan"
+	MESSAGE_FAILED_GET_REPORTS = "gagal mendapatkan laporan"
 
 	// Success
 	MESSAGE_SUCCESS_SEND_REPORT = "berhasil mengirim laporan"
+	MESSAGE_SUCCESS_GET_REPORTS = "berhasil mendapatkan laporan"
 )
 
 var (
-	ErrInvalidImageType      = errors.New("invalid image type")
-	ErrImageSizeTooLarge     = errors.New("image size too large")
-	ErrEmptyFileUploaded     = errors.New("empty file uploaded")
-	ErrInvalidImageExtension = errors.New("invalid image extension")
-	ErrFailedToOpenImageFile = errors.New("failed to open image file")
-	ErrCreateReport          = errors.New("failed to create report")
-	ErrEmptyContent          = errors.New("error empty content")
+	ErrInvalidImageType      = errors.New("tipe gambar tidak valid")
+	ErrImageSizeTooLarge     = errors.New("ukuran gambar terlalu besar")
+	ErrEmptyFileUploaded     = errors.New("file kosong")
+	ErrInvalidImageExtension = errors.New("extensi gambar tidak valid")
+	ErrFailedToOpenImageFile = errors.New("gagal membuka gambar")
+	ErrCreateReport          = errors.New("gagal membuat laporan")
+	ErrEmptyContent          = errors.New("konten kosong")
 
 // ErrCreateUser             = errors.New("failed to create user")
 )
@@ -34,5 +38,23 @@ type (
 		ID    string `json:"id"`
 		Text  string `json:"text"`
 		Image string `json:"image"`
+	}
+	ReportResponse struct {
+		ID             string `json:"id"`
+		Text           string `json:"text"`
+		Image          string `json:"image"`
+		TagID          string `json:"tag_id"`
+		UserID         string `json:"user_id"`
+		PredConfidence int    `json:"pred_confidence"`
+	}
+
+	ReportPaginationResponse struct {
+		Data []ReportResponse `json:"data"`
+		PaginationResponse
+	}
+
+	GetAllReportResponse struct {
+		Reports []entity.Report `json:"reports"`
+		PaginationResponse
 	}
 )

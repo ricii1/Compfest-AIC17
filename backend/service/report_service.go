@@ -23,6 +23,7 @@ import (
 type (
 	ReportService interface {
 		CreateReport(ctx context.Context, req dto.CreateReportRequest) (dto.CreateReportResponse, error)
+		GetAllReports(ctx context.Context, req dto.PaginationRequest) (dto.ReportPaginationResponse, error)
 	}
 
 	reportService struct {
@@ -179,5 +180,45 @@ func (s *reportService) CreateReport(ctx context.Context, req dto.CreateReportRe
 		ID:    createdReport.ID,
 		Text:  createdReport.Text,
 		Image: createdReport.Image,
+	}, nil
+}
+
+func (s *reportService) GetAllReports(ctx context.Context, req dto.PaginationRequest) (dto.ReportPaginationResponse, error) {
+	reports, err := s.reportRepo.GetAllReportsWithPagination(ctx, nil, req)
+	if err != nil {
+		return dto.ReportPaginationResponse{}, err
+	}
+
+	var datas []dto.ReportResponse
+	for _, report := range reports.Reports {
+		data := dto.ReportResponse{
+			ID:    report.ID,
+			Text:  report.Text,
+			Image: report.Image,
+			TagID: func() string {
+				if report.TagID != nil {
+					return *report.TagID
+				}
+				return ""
+			}(),
+			UserID: report.UserID,
+			PredConfidence: func() int {
+				if report.PredConfidence != nil {
+					return *report.PredConfidence
+				}
+				return 0
+			}(),
+		}
+		datas = append(datas, data)
+	}
+
+	return dto.ReportPaginationResponse{
+		Data: datas,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    reports.Page,
+			PerPage: reports.PerPage,
+			MaxPage: reports.MaxPage,
+			Count:   reports.Count,
+		},
 	}, nil
 }
