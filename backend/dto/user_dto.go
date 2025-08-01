@@ -45,6 +45,7 @@ var (
 	ErrTokenInvalid           = errors.New("token invalid")
 	ErrTokenExpired           = errors.New("token expired")
 	ErrAccountAlreadyVerified = errors.New("account already verified")
+	ErrUserIdEmpty            = errors.New("user id empty")
 )
 
 type (
