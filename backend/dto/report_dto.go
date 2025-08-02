@@ -9,12 +9,14 @@ import (
 
 const (
 	// Failed
-	MESSAGE_FAILED_SEND_REPORT = "gagal mengirim laporan"
-	MESSAGE_FAILED_GET_REPORTS = "gagal mendapatkan laporan"
+	MESSAGE_FAILED_SEND_REPORT      = "gagal mengirim laporan"
+	MESSAGE_FAILED_GET_REPORTS      = "gagal mendapatkan laporan"
+	MESSAGE_FAILED_GET_REPORT_BY_ID = "gagal mendapatkan laporan dari id"
 
 	// Success
-	MESSAGE_SUCCESS_SEND_REPORT = "berhasil mengirim laporan"
-	MESSAGE_SUCCESS_GET_REPORTS = "berhasil mendapatkan laporan"
+	MESSAGE_SUCCESS_SEND_REPORT      = "berhasil mengirim laporan"
+	MESSAGE_SUCCESS_GET_REPORTS      = "berhasil mendapatkan laporan"
+	MESSAGE_SUCCESS_GET_REPORT_BY_ID = "berhasil mendapatkan laporan dari id"
 )
 
 var (
@@ -25,6 +27,8 @@ var (
 	ErrFailedToOpenImageFile = errors.New("gagal membuka gambar")
 	ErrCreateReport          = errors.New("gagal membuat laporan")
 	ErrEmptyContent          = errors.New("konten kosong")
+	ErrGetReports            = errors.New("gagal mendapatkan laporan")
+	ErrGetReportById         = errors.New("gagal mendapatkan laporan dari id")
 
 // ErrCreateUser             = errors.New("failed to create user")
 )

@@ -17,6 +17,7 @@ type (
 			tx *gorm.DB,
 			req dto.PaginationRequest,
 		) (dto.GetAllReportResponse, error)
+		GetReportById(ctx context.Context, tx *gorm.DB, reportId string) (entity.Report, error)
 	}
 
 	reportRepository struct {
@@ -81,4 +82,17 @@ func (r *reportRepository) GetAllReportsWithPagination(
 			MaxPage: totalPage,
 		},
 	}, err
+}
+
+func (r *reportRepository) GetReportById(ctx context.Context, tx *gorm.DB, reportId string) (entity.Report, error) {
+	if tx == nil {
+		tx = r.db
+	}
+
+	var report entity.Report
+	if err := tx.WithContext(ctx).First(&report, "id = ?", reportId).Error; err != nil {
+		return entity.Report{}, err
+	}
+
+	return report, nil
 }

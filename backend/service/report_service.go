@@ -24,6 +24,7 @@ type (
 	ReportService interface {
 		CreateReport(ctx context.Context, req dto.CreateReportRequest) (dto.CreateReportResponse, error)
 		GetAllReports(ctx context.Context, req dto.PaginationRequest) (dto.ReportPaginationResponse, error)
+		GetReportById(ctx context.Context, reportId string) (dto.ReportResponse, error)
 	}
 
 	reportService struct {
@@ -186,7 +187,7 @@ func (s *reportService) CreateReport(ctx context.Context, req dto.CreateReportRe
 func (s *reportService) GetAllReports(ctx context.Context, req dto.PaginationRequest) (dto.ReportPaginationResponse, error) {
 	reports, err := s.reportRepo.GetAllReportsWithPagination(ctx, nil, req)
 	if err != nil {
-		return dto.ReportPaginationResponse{}, err
+		return dto.ReportPaginationResponse{}, dto.ErrGetReports
 	}
 
 	var datas []dto.ReportResponse
@@ -220,5 +221,31 @@ func (s *reportService) GetAllReports(ctx context.Context, req dto.PaginationReq
 			MaxPage: reports.MaxPage,
 			Count:   reports.Count,
 		},
+	}, nil
+}
+
+func (s *reportService) GetReportById(ctx context.Context, reportId string) (dto.ReportResponse, error) {
+	report, err := s.reportRepo.GetReportById(ctx, nil, reportId)
+	if err != nil {
+		return dto.ReportResponse{}, dto.ErrGetReportById
+	}
+
+	return dto.ReportResponse{
+		ID:    report.ID,
+		Text:  report.Text,
+		Image: report.Image,
+		TagID: func() string {
+			if report.TagID != nil {
+				return *report.TagID
+			}
+			return ""
+		}(),
+		UserID: report.UserID,
+		PredConfidence: func() int {
+			if report.PredConfidence != nil {
+				return *report.PredConfidence
+			}
+			return 0
+		}(),
 	}, nil
 }
