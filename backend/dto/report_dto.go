@@ -55,6 +55,7 @@ type (
 		ShareCount     int    `json:"share_count"`
 		TagID          string `json:"tag_id"`
 		UserID         string `json:"user_id"`
+		Username       string `json:"username"`
 		PredConfidence int    `json:"pred_confidence"`
 		CreatedAt      string `json:"created_at"`
 	}

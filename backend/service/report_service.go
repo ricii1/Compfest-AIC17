@@ -194,17 +194,26 @@ func (s *reportService) GetAllReports(ctx context.Context, req dto.PaginationReq
 
 	var datas []dto.ReportResponse
 	for _, report := range reports.Reports {
+		user, err := s.userRepo.GetUserById(ctx, nil, report.UserID)
+		if err != nil {
+			return dto.ReportPaginationResponse{}, dto.ErrGetReportById
+		}
 		data := dto.ReportResponse{
-			ID:    report.ID,
-			Text:  report.Text,
-			Image: report.Image,
+			ID:         report.ID,
+			Text:       report.Text,
+			Image:      report.Image,
+			Location:   report.Location,
+			Status:     fmt.Sprintf("%v", report.Status),
+			Upvotes:    report.Upvotes,
+			ShareCount: report.ShareCount,
+			UserID:     report.UserID,
+			Username:   user.Name,
 			TagID: func() string {
 				if report.TagID != nil {
 					return *report.TagID
 				}
 				return ""
 			}(),
-			UserID: report.UserID,
 			PredConfidence: func() int {
 				if report.PredConfidence != nil {
 					return *report.PredConfidence
@@ -231,18 +240,27 @@ func (s *reportService) GetReportById(ctx context.Context, reportId string) (dto
 	if err != nil {
 		return dto.ReportResponse{}, dto.ErrGetReportById
 	}
+	user, err := s.userRepo.GetUserById(ctx, nil, report.UserID)
+	if err != nil {
+		return dto.ReportResponse{}, dto.ErrGetUserById
+	}
 
 	return dto.ReportResponse{
-		ID:    report.ID,
-		Text:  report.Text,
-		Image: report.Image,
+		ID:         report.ID,
+		Text:       report.Text,
+		Image:      report.Image,
+		Location:   report.Location,
+		Status:     fmt.Sprintf("%v", report.Status),
+		Upvotes:    report.Upvotes,
+		ShareCount: report.ShareCount,
+		UserID:     report.UserID,
+		Username:   user.Name,
 		TagID: func() string {
 			if report.TagID != nil {
 				return *report.TagID
 			}
 			return ""
 		}(),
-		UserID: report.UserID,
 		PredConfidence: func() int {
 			if report.PredConfidence != nil {
 				return *report.PredConfidence
