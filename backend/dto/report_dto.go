@@ -9,14 +9,16 @@ import (
 
 const (
 	// Failed
-	MESSAGE_FAILED_SEND_REPORT      = "gagal mengirim laporan"
-	MESSAGE_FAILED_GET_REPORTS      = "gagal mendapatkan laporan"
-	MESSAGE_FAILED_GET_REPORT_BY_ID = "gagal mendapatkan laporan dari id"
+	MESSAGE_FAILED_SEND_REPORT            = "gagal mengirim laporan"
+	MESSAGE_FAILED_GET_REPORTS            = "gagal mendapatkan laporan"
+	MESSAGE_FAILED_GET_REPORT_BY_ID       = "gagal mendapatkan laporan dari id"
+	MESSAGE_FAILED_GET_REPORTS_BY_USER_ID = "gagal mendapatkan laporan berdasarkan user id"
 
 	// Success
-	MESSAGE_SUCCESS_SEND_REPORT      = "berhasil mengirim laporan"
-	MESSAGE_SUCCESS_GET_REPORTS      = "berhasil mendapatkan laporan"
-	MESSAGE_SUCCESS_GET_REPORT_BY_ID = "berhasil mendapatkan laporan dari id"
+	MESSAGE_SUCCESS_SEND_REPORT            = "berhasil mengirim laporan"
+	MESSAGE_SUCCESS_GET_REPORTS            = "berhasil mendapatkan laporan"
+	MESSAGE_SUCCESS_GET_REPORT_BY_ID       = "berhasil mendapatkan laporan dari id"
+	MESSAGE_SUCCESS_GET_REPORTS_BY_USER_ID = "berhasil mendapatkan laporan berdasarkan user id"
 )
 
 var (

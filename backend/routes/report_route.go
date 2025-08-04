@@ -19,5 +19,6 @@ func Reports(route *gin.Engine, injector *do.Injector) {
 		routes.POST("", middleware.Authenticate(jwtService), reportController.CreateReport)
 		routes.GET("", middleware.Authenticate(jwtService), reportController.GetAllReports)
 		routes.GET("/:id", middleware.Authenticate(jwtService), reportController.GetReportById)
+		routes.GET("/user/:id", middleware.Authenticate(jwtService), reportController.GetReportsByUserId)
 	}
 }

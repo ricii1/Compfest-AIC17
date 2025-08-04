@@ -25,6 +25,7 @@ type (
 		CreateReport(ctx context.Context, req dto.CreateReportRequest) (dto.CreateReportResponse, error)
 		GetAllReports(ctx context.Context, req dto.PaginationRequest) (dto.ReportPaginationResponse, error)
 		GetReportById(ctx context.Context, reportId string) (dto.ReportResponse, error)
+		GetReportsByUserId(ctx context.Context, userId string, req dto.PaginationRequest) (dto.ReportPaginationResponse, error)
 	}
 
 	reportService struct {
@@ -267,5 +268,54 @@ func (s *reportService) GetReportById(ctx context.Context, reportId string) (dto
 			}
 			return 0
 		}(),
+	}, nil
+}
+
+func (s *reportService) GetReportsByUserId(ctx context.Context, userId string, req dto.PaginationRequest) (dto.ReportPaginationResponse, error) {
+	reports, err := s.reportRepo.GetReportsByUserId(ctx, nil, userId, req)
+	if err != nil {
+		return dto.ReportPaginationResponse{}, dto.ErrGetReports
+	}
+
+	var datas []dto.ReportResponse
+	for _, report := range reports.Reports {
+		user, err := s.userRepo.GetUserById(ctx, nil, report.UserID)
+		if err != nil {
+			return dto.ReportPaginationResponse{}, dto.ErrGetReportById
+		}
+		data := dto.ReportResponse{
+			ID:         report.ID,
+			Text:       report.Text,
+			Image:      report.Image,
+			Location:   report.Location,
+			Status:     fmt.Sprintf("%v", report.Status),
+			Upvotes:    report.Upvotes,
+			ShareCount: report.ShareCount,
+			UserID:     report.UserID,
+			Username:   user.Name,
+			TagID: func() string {
+				if report.TagID != nil {
+					return *report.TagID
+				}
+				return ""
+			}(),
+			PredConfidence: func() int {
+				if report.PredConfidence != nil {
+					return *report.PredConfidence
+				}
+				return 0
+			}(),
+		}
+		datas = append(datas, data)
+	}
+
+	return dto.ReportPaginationResponse{
+		Data: datas,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    reports.Page,
+			PerPage: reports.PerPage,
+			MaxPage: reports.MaxPage,
+			Count:   reports.Count,
+		},
 	}, nil
 }

@@ -14,6 +14,7 @@ type (
 		CreateReport(ctx *gin.Context)
 		GetAllReports(ctx *gin.Context)
 		GetReportById(ctx *gin.Context)
+		GetReportsByUserId(ctx *gin.Context)
 	}
 
 	reportController struct {
@@ -73,5 +74,23 @@ func (c *reportController) GetReportById(ctx *gin.Context) {
 		return
 	}
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_REPORT_BY_ID, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *reportController) GetReportsByUserId(ctx *gin.Context) {
+	userId := ctx.Param("id")
+	var req dto.PaginationRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	result, err := c.reportService.GetReportsByUserId(ctx.Request.Context(), userId, req)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_REPORTS_BY_USER_ID, err.Error(), nil)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_REPORTS_BY_USER_ID, result)
 	ctx.JSON(http.StatusOK, res)
 }

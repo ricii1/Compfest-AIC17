@@ -1,5 +1,0 @@
-*.env
-storage/
-assets/
-volumes/
-.idea/
