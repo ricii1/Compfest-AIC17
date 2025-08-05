@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppConstants {
-  static const String apiBaseUrl = 'http://10.0.2.2:8888/api';
+  static const String apiBaseUrl = 'http://10.125.191.249:8888/api';
   static const int maxTextLength = 280;
 }
 

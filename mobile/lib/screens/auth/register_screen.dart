@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-// import '../../services/auth_service.dart';
+import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
-// import '../../widgets/common/loading_button.dart';
-// import '../../widgets/common/custom_text_field.dart';
+import '../../widgets/common/loading_button.dart';
 import './login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -22,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen>
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  String? _errorMessage;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -38,30 +38,75 @@ class _RegisterScreenState extends State<RegisterScreen>
     _animationController.forward();
   }
 
-  // Mock register untuk UI testing
+  // Register dengan AuthService
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final authService = AuthService();
+      final response = await authService.register(
+        email: _emailController.text.trim(),
+        username: _usernameController.text.trim(),
+        password: _passwordController.text,
+      );
 
-    setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
 
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Account created successfully! Please sign in.'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+      if (response.isSuccess) {
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account created successfully! Please sign in.'),
+              backgroundColor: AppColors.success,
+              duration: Duration(seconds: 3),
+            ),
+          );
 
-    // Navigate to login screen after successful registration
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
+          // Navigate to login screen after successful registration
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
+        }
+      } else {
+        // Set error message for display in UI
+        setState(() {
+          _errorMessage = response.message;
+        });
+
+        // Also show snackbar
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response.message),
+              backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'An unexpected error occurred. Please try again.';
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An unexpected error occurred: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -270,8 +315,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                     ),
                     validator: (value) {
                       if (value?.isEmpty ?? true) return 'Password is required';
-                      if (value!.length < 6)
-                        return 'Password must be at least 6 characters';
+                      if (value!.length < 8) {
+                        return 'Password must be at least 8 characters';
+                      }
                       return null;
                     },
                   ),
@@ -329,48 +375,69 @@ class _RegisterScreenState extends State<RegisterScreen>
                       ),
                     ),
                     validator: (value) {
-                      if (value?.isEmpty ?? true)
+                      if (value?.isEmpty ?? true) {
                         return 'Please confirm your password';
-                      if (value != _passwordController.text)
+                      }
+                      if (value != _passwordController.text) {
                         return 'Passwords do not match';
+                      }
                       return null;
                     },
                   ),
 
                   const SizedBox(height: 32),
 
-                  // Register Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _register,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                        elevation: _isLoading ? 0 : 3,
-                        shadowColor: AppColors.primary.withValues(alpha: 0.3),
+                  // Error Message Display
+                  if (_errorMessage != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        border: Border.all(color: AppColors.error),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              'Create Account',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: AppColors.error,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                color: AppColors.error,
+                                fontSize: 14,
                               ),
                             ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: AppColors.error,
+                              size: 18,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _errorMessage = null;
+                              });
+                            },
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
                     ),
+
+                  // Register Button
+                  LoadingButton(
+                    onPressed: _register,
+                    isLoading: _isLoading,
+                    text: 'Create Account',
                   ),
 
                   const SizedBox(height: 24),
