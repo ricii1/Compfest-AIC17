@@ -38,6 +38,14 @@ class AppStrings {
   static const String like = 'Like';
   static const String comment = 'Comment';
   static const String share = 'Share';
+  static const String failedToConnectToServer =
+      'Failed to connect to the server. Please check your internet connection or try again later.';
+  static const String networkError =
+      'Network error occurred. Please try again.';
+  static const String timeoutError =
+      'Connection timeout. Please check your internet connection.';
+  static const String invalidResponseFormat =
+      'Invalid response format from server. Please contact support.';
 }
 
 class AppTextStyles {

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../utils/constants.dart';
 import '../models/api_response.dart';
+import 'token_service.dart';
 
 class AuthService {
   static const String baseUrl = '${AppConstants.apiBaseUrl}/user';
@@ -55,19 +56,15 @@ class AuthService {
         return ApiResponse.error(errorMessage);
       }
     } on SocketException {
-      return ApiResponse.error(
-        'Unable to connect to server. Please check your internet connection and server availability.',
-      );
+      return ApiResponse.error(AppStrings.failedToConnectToServer);
     } on FormatException {
-      return ApiResponse.error('Invalid response format from server.');
+      return ApiResponse.error(AppStrings.invalidResponseFormat);
     } on http.ClientException {
-      return ApiResponse.error('Network error occurred. Please try again.');
+      return ApiResponse.error(AppStrings.networkError);
     } catch (e) {
       print('Registration error: $e');
       if (e.toString().contains('TimeoutException')) {
-        return ApiResponse.error(
-          'Connection timeout. Please check your internet connection.',
-        );
+        return ApiResponse.error(AppStrings.timeoutError);
       } else {
         return ApiResponse.error('Registration failed: ${e.toString()}');
       }
@@ -75,12 +72,12 @@ class AuthService {
   }
 
   Future<ApiResponse<Map<String, dynamic>>> login({
-    required String username,
+    required String email,
     required String password,
   }) async {
     try {
       final url = Uri.parse('$baseUrl/login');
-      final body = {'username': username, 'password': password};
+      final body = {'email': email, 'password': password};
 
       print('Sending login request to: $url');
       print('Request body: ${json.encode(body)}');
@@ -94,7 +91,7 @@ class AuthService {
             },
             body: json.encode(body),
           )
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 10));
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
@@ -102,6 +99,12 @@ class AuthService {
       final responseData = json.decode(response.body) as Map<String, dynamic>;
 
       if (response.statusCode == 200) {
+        final String? token =
+            responseData['data']?['access_token'] ??
+            responseData['access_token'];
+        if (token != null) {
+          await TokenService.saveToken(token);
+        }
         return ApiResponse.success(responseData);
       } else {
         final errorMessage =
@@ -112,19 +115,15 @@ class AuthService {
         return ApiResponse.error(errorMessage);
       }
     } on SocketException {
-      return ApiResponse.error(
-        'Unable to connect to server. Please check your internet connection and server availability.',
-      );
+      return ApiResponse.error(AppStrings.failedToConnectToServer);
     } on FormatException {
-      return ApiResponse.error('Invalid response format from server.');
+      return ApiResponse.error(AppStrings.invalidResponseFormat);
     } on http.ClientException {
-      return ApiResponse.error('Network error occurred. Please try again.');
+      return ApiResponse.error(AppStrings.networkError);
     } catch (e) {
       print('Login error: $e');
       if (e.toString().contains('TimeoutException')) {
-        return ApiResponse.error(
-          'Connection timeout. Please check your internet connection.',
-        );
+        return ApiResponse.error(AppStrings.timeoutError);
       } else {
         return ApiResponse.error('Login failed: ${e.toString()}');
       }
@@ -133,7 +132,10 @@ class AuthService {
 
   // Method untuk logout (jika diperlukan nanti)
   Future<void> logout() async {
-    // Implement logout logic here
-    // Clear stored tokens, user data, etc.
+    await TokenService.clearAll();
+  }
+
+  Future<bool> isLoggedIn() async {
+    return await TokenService.isLoggedIn();
   }
 }

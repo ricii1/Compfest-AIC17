@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'screens/auth/login_screen.dart';
+// import 'screens/auth/login_screen.dart';
 import 'utils/constants.dart';
+import 'widgets/auth_guard.dart';
+import 'screens/home/home_screen.dart';
 
 void main() {
   runApp(const ReportApp());
@@ -23,7 +25,7 @@ class ReportApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      home: const LoginScreen(),
+      home: const AuthGuard(child: HomeScreen(token: '')),
       debugShowCheckedModeBanner: false,
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 import '../report/create_report_screen.dart';
+import '../auth/login_screen.dart';
+import '../../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final String token;
@@ -326,9 +328,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, '/login');
+              final authService = AuthService();
+              await authService.logout();
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (route) => false,
+              );
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Logout'),
