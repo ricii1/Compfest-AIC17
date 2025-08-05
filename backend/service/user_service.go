@@ -5,11 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"html/template"
 	"os"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/Caknoooo/go-gin-clean-starter/constants"
 	"github.com/Caknoooo/go-gin-clean-starter/dto"
@@ -105,16 +106,6 @@ func (s *userService) Register(ctx context.Context, req dto.UserCreateRequest) (
 	userReg, err := s.userRepo.Register(ctx, nil, user)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrCreateUser
-	}
-
-	draftEmail, err := makeVerificationEmail(userReg.Email)
-	if err != nil {
-		return dto.UserResponse{}, err
-	}
-
-	err = utils.SendMail(userReg.Email, draftEmail["subject"], draftEmail["body"])
-	if err != nil {
-		return dto.UserResponse{}, err
 	}
 
 	return dto.UserResponse{
