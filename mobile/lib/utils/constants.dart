@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   static const String apiBaseUrl = 'http://10.125.191.249:8888/api';
+  static const String imageBaseUrl = 'http://10.125.191.249:8888/assets';
   static const int maxTextLength = 280;
 }
 
