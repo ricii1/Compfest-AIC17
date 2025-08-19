@@ -12,14 +12,15 @@ func ProvideReportDependencies(injector *do.Injector, db *gorm.DB, jwtService se
 	// Repository
 	reportRepository := repository.NewReportRepository(db)
 	userRepository := repository.NewUserRepository(db)
+	refreshTokenRepository := repository.NewRefreshTokenRepository(db)
 	// Service
 	reportService := service.NewReportService(userRepository, reportRepository, db)
-	// userService := service.NewUserService(userRepository, refreshTokenRepository, jwtService, db)
+	userService := service.NewUserService(userRepository, refreshTokenRepository, jwtService, db)
 
 	// Controller
 	do.Provide(
 		injector, func(i *do.Injector) (controller.ReportController, error) {
-			return controller.NewReportController(reportService), nil
+			return controller.NewReportController(reportService, userService), nil
 		},
 	)
 }

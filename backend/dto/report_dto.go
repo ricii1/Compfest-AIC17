@@ -13,6 +13,7 @@ const (
 	MESSAGE_FAILED_GET_REPORTS            = "gagal mendapatkan laporan"
 	MESSAGE_FAILED_GET_REPORT_BY_ID       = "gagal mendapatkan laporan dari id"
 	MESSAGE_FAILED_GET_REPORTS_BY_USER_ID = "gagal mendapatkan laporan berdasarkan user id"
+	MESSAGE_FAILED_DENIED                 = "akses ditolak"
 
 	// Success
 	MESSAGE_SUCCESS_SEND_REPORT            = "berhasil mengirim laporan"
@@ -31,6 +32,7 @@ var (
 	ErrEmptyContent          = errors.New("konten kosong")
 	ErrGetReports            = errors.New("gagal mendapatkan laporan")
 	ErrGetReportById         = errors.New("gagal mendapatkan laporan dari id")
+	ErrUpdateReportStatus    = errors.New("gagal memperbarui status laporan")
 
 // ErrCreateUser             = errors.New("failed to create user")
 )
@@ -70,5 +72,14 @@ type (
 	GetAllReportResponse struct {
 		Reports []entity.Report `json:"reports"`
 		PaginationResponse
+	}
+
+	UpdateStatusReportRequest struct {
+		Status entity.ReportStatus `json:"status"`
+	}
+
+	UpdateStatusReportResponse struct {
+		ID     string              `json:"id"`
+		Status entity.ReportStatus `json:"status"`
 	}
 )

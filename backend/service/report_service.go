@@ -3,12 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	"io"
-	"mime/multipart"
-	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/google/uuid"
 
@@ -26,6 +21,7 @@ type (
 		GetAllReports(ctx context.Context, req dto.PaginationRequest) (dto.ReportPaginationResponse, error)
 		GetReportById(ctx context.Context, reportId string) (dto.ReportResponse, error)
 		GetReportsByUserId(ctx context.Context, userId string, req dto.PaginationRequest) (dto.ReportPaginationResponse, error)
+		UpdateReportStatus(ctx context.Context, reportId string, status entity.ReportStatus) (dto.UpdateStatusReportResponse, error)
 	}
 
 	reportService struct {
@@ -54,83 +50,6 @@ const (
 	MaxImageHeight = 4000             // pixels
 	UploadDir      = "./uploads/reports"
 )
-
-// validateImageSize checks if image size is within allowed limits
-func validateImageSize(file *multipart.FileHeader) error {
-	if file.Size > MaxImageSize {
-		return dto.ErrImageSizeTooLarge
-	}
-
-	if file.Size == 0 {
-		return dto.ErrEmptyFileUploaded
-	}
-
-	return nil
-}
-
-// isValidImageType validates image type by checking both MIME type and file signature
-func isValidImageType(file *multipart.FileHeader) (bool, error) {
-	// Define allowed MIME types
-	allowedMimeTypes := map[string]bool{
-		"image/jpeg": true,
-		"image/jpg":  true,
-		"image/png":  true,
-		"image/gif":  true,
-		"image/webp": true,
-		"image/bmp":  true,
-		"image/tiff": true,
-	}
-
-	// Check MIME type from header
-	contentType := file.Header.Get("Content-Type")
-	if !allowedMimeTypes[strings.ToLower(contentType)] {
-		return false, dto.ErrInvalidImageType
-	}
-
-	// Check file extension
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	allowedExtensions := map[string]bool{
-		".jpg":  true,
-		".jpeg": true,
-		".png":  true,
-		".gif":  true,
-		".webp": true,
-		".bmp":  true,
-		".tiff": true,
-		".tif":  true,
-	}
-
-	if !allowedExtensions[ext] {
-		return false, dto.ErrInvalidImageExtension
-	}
-
-	// Verify file signature (magic bytes) for additional security
-	src, err := file.Open()
-	if err != nil {
-		return false, dto.ErrFailedToOpenImageFile
-	}
-	defer src.Close()
-
-	// Read first 512 bytes to detect content type
-	buffer := make([]byte, 512)
-	_, err = src.Read(buffer)
-	if err != nil && err != io.EOF {
-		return false, dto.ErrFailedToOpenImageFile
-	}
-
-	// Reset file pointer
-	src.Seek(0, 0)
-
-	// Detect actual content type from file content
-	detectedType := http.DetectContentType(buffer)
-
-	// Verify detected type matches allowed types
-	if !allowedMimeTypes[strings.ToLower(detectedType)] {
-		return false, dto.ErrInvalidImageType
-	}
-
-	return true, nil
-}
 
 func (s *reportService) CreateReport(ctx context.Context, req dto.CreateReportRequest) (dto.CreateReportResponse, error) {
 	user_id, ok := ctx.Value("user_id").(string)
@@ -318,4 +237,16 @@ func (s *reportService) GetReportsByUserId(ctx context.Context, userId string, r
 			Count:   reports.Count,
 		},
 	}, nil
+}
+
+func (s *reportService) UpdateReportStatus(ctx context.Context, reportId string, status entity.ReportStatus) (dto.UpdateStatusReportResponse, error) {
+	if status != entity.StatusUnverified && status != entity.StatusVerified && status != entity.StatusRejected && status != entity.StatusCompleted && status != entity.StatusHandled {
+		return dto.UpdateStatusReportResponse{}, dto.ErrUpdateReportStatus
+	}
+	reports, err := s.reportRepo.UpdateReportStatus(ctx, nil, reportId, status)
+	if err != nil {
+		return dto.UpdateStatusReportResponse{}, dto.ErrUpdateReportStatus
+	}
+
+	return reports, nil
 }

@@ -15,16 +15,19 @@ type (
 		GetAllReports(ctx *gin.Context)
 		GetReportById(ctx *gin.Context)
 		GetReportsByUserId(ctx *gin.Context)
+		UpdateReportStatus(ctx *gin.Context)
 	}
 
 	reportController struct {
 		reportService service.ReportService
+		userService   service.UserService
 	}
 )
 
-func NewReportController(rs service.ReportService) ReportController {
+func NewReportController(rs service.ReportService, us service.UserService) ReportController {
 	return &reportController{
 		reportService: rs,
+		userService:   us,
 	}
 }
 
@@ -92,5 +95,35 @@ func (c *reportController) GetReportsByUserId(ctx *gin.Context) {
 		return
 	}
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_REPORTS_BY_USER_ID, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *reportController) UpdateReportStatus(ctx *gin.Context) {
+	userId := ctx.MustGet("user_id").(string)
+	user, err := c.userService.GetUserById(ctx.Request.Context(), userId)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_USER, err.Error(), nil)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	if user.Role != "admin" {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_DENIED_ACCESS, dto.MESSAGE_FAILED_DENIED, nil)
+		ctx.JSON(http.StatusForbidden, res)
+		return
+	}
+	reportId := ctx.Param("id")
+	var req dto.UpdateStatusReportRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	result, err := c.reportService.UpdateReportStatus(ctx.Request.Context(), reportId, req.Status)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_REPORT_BY_ID, err.Error(), nil)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_REPORT_BY_ID, result)
 	ctx.JSON(http.StatusOK, res)
 }

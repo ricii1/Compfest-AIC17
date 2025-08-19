@@ -18,6 +18,7 @@ type (
 		) (dto.GetAllReportResponse, error)
 		GetReportById(ctx context.Context, tx *gorm.DB, reportId string) (entity.Report, error)
 		GetReportsByUserId(ctx context.Context, tx *gorm.DB, userId string, req dto.PaginationRequest) (dto.GetAllReportResponse, error)
+		UpdateReportStatus(ctx context.Context, tx *gorm.DB, reportId string, status entity.ReportStatus) (dto.UpdateStatusReportResponse, error)
 	}
 
 	reportRepository struct {
@@ -131,4 +132,25 @@ func (r *reportRepository) GetReportsByUserId(ctx context.Context, tx *gorm.DB, 
 			MaxPage: totalPage,
 		},
 	}, err
+}
+
+func (r *reportRepository) UpdateReportStatus(ctx context.Context, tx *gorm.DB, reportId string, status entity.ReportStatus) (dto.UpdateStatusReportResponse, error) {
+	if tx == nil {
+		tx = r.db
+	}
+
+	var report entity.Report
+	if err := tx.WithContext(ctx).First(&report, "id = ?", reportId).Error; err != nil {
+		return dto.UpdateStatusReportResponse{}, err
+	}
+
+	report.Status = status
+	if err := tx.WithContext(ctx).Save(&report).Error; err != nil {
+		return dto.UpdateStatusReportResponse{}, err
+	}
+
+	return dto.UpdateStatusReportResponse{
+		ID:     report.ID,
+		Status: report.Status,
+	}, nil
 }
