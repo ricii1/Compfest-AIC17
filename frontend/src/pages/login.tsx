@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { useForm } from 'react-hook-form';
 import { backendUrl } from '@/constant/env';
 import axios from "axios";
+import Swal from 'sweetalert2';
+import { setToSessionStorage } from '@/lib/helper';
 
 type LoginFormData = {
   email: string;
@@ -30,9 +32,52 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       // Handle login logic here
-      const response = await axios.post(`${backendUrl}/user/login`, data);
+      handleLogin(data);
     } catch (error) {
       console.error('Login failed:', error);
+    }
+  };
+
+  const handleLogin = async (data: LoginFormData) => {
+    try {
+      const response = await axios.post(`${backendUrl}/api/user/login`, data);
+
+      if (response.status !== 200) {
+        throw new Error('Login failed');
+      }
+      const result = response.data.data;
+      if (result.role === 'admin') {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Login Successful!',
+          text: 'Welcome to RAPID Admin Dashboard',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        setToSessionStorage("access_token", result.access_token)
+        window.location.href = '/';
+      } else if (result.role === 'user') {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Access Denied',
+          text: 'You do not have admin privileges.',
+          confirmButtonColor: '#d33'
+        });
+      } else {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: 'Unknown role.',
+          confirmButtonColor: '#d33'
+        });
+      }
+    } catch (error) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: 'Please check your credentials and try again.',
+        confirmButtonColor: '#d33'
+      });
     }
   };
 
