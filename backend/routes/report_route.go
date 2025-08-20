@@ -21,5 +21,7 @@ func Reports(route *gin.Engine, injector *do.Injector) {
 		routes.GET("/:id", middleware.Authenticate(jwtService), reportController.GetReportById)
 		routes.GET("/user/:id", middleware.Authenticate(jwtService), reportController.GetReportsByUserId)
 		routes.POST("/:id/status", middleware.Authenticate(jwtService), reportController.UpdateReportStatus)
+		routes.GET("/count", middleware.Authenticate(jwtService), reportController.CountReportStatus)
+		routes.GET("/status/:status", middleware.Authenticate(jwtService), reportController.GetReportsByStatus)
 	}
 }

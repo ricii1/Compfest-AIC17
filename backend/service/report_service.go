@@ -22,6 +22,8 @@ type (
 		GetReportById(ctx context.Context, reportId string) (dto.ReportResponse, error)
 		GetReportsByUserId(ctx context.Context, userId string, req dto.PaginationRequest) (dto.ReportPaginationResponse, error)
 		UpdateReportStatus(ctx context.Context, reportId string, status entity.ReportStatus) (dto.UpdateStatusReportResponse, error)
+		CountReportStatus(ctx context.Context) (dto.CountReportResponse, error)
+		GetReportsByStatus(ctx context.Context, status string, req dto.PaginationRequest) (dto.ReportPaginationResponse, error)
 	}
 
 	reportService struct {
@@ -249,4 +251,72 @@ func (s *reportService) UpdateReportStatus(ctx context.Context, reportId string,
 	}
 
 	return reports, nil
+}
+
+func (s *reportService) CountReportStatus(ctx context.Context) (dto.CountReportResponse, error) {
+	counts, err := s.reportRepo.CountReportStatus(ctx, nil)
+	if err != nil {
+		return dto.CountReportResponse{}, dto.ErrGetReports
+	}
+	return dto.CountReportResponse{
+		Total:      counts.Total,
+		Unverified: counts.Unverified,
+		Verified:   counts.Verified,
+		Rejected:   counts.Rejected,
+		Handled:    counts.Handled,
+		Completed:  counts.Completed,
+	}, nil
+}
+
+func (s *reportService) GetReportsByStatus(ctx context.Context, status string, req dto.PaginationRequest) (dto.ReportPaginationResponse, error) {
+	reportStatus := entity.ReportStatus(status)
+	if reportStatus != entity.StatusUnverified && reportStatus != entity.StatusVerified && reportStatus != entity.StatusRejected && reportStatus != entity.StatusCompleted && reportStatus != entity.StatusHandled {
+		return dto.ReportPaginationResponse{}, dto.ErrGetReports
+	}
+	reports, err := s.reportRepo.GetReportsByStatus(ctx, nil, reportStatus, req)
+	if err != nil {
+		return dto.ReportPaginationResponse{}, dto.ErrGetReports
+	}
+
+	var datas []dto.ReportResponse
+	for _, report := range reports.Reports {
+		user, err := s.userRepo.GetUserById(ctx, nil, report.UserID)
+		if err != nil {
+			return dto.ReportPaginationResponse{}, dto.ErrGetUserById
+		}
+		data := dto.ReportResponse{
+			ID:         report.ID,
+			Text:       report.Text,
+			Image:      report.Image,
+			Location:   report.Location,
+			Status:     fmt.Sprintf("%v", report.Status),
+			Upvotes:    report.Upvotes,
+			ShareCount: report.ShareCount,
+			UserID:     report.UserID,
+			Username:   user.Name,
+			TagID: func() string {
+				if report.TagID != nil {
+					return *report.TagID
+				}
+				return ""
+			}(),
+			PredConfidence: func() int {
+				if report.PredConfidence != nil {
+					return *report.PredConfidence
+				}
+				return 0
+			}(),
+		}
+		datas = append(datas, data)
+	}
+
+	return dto.ReportPaginationResponse{
+		Data: datas,
+		PaginationResponse: dto.PaginationResponse{
+			Page:    reports.Page,
+			PerPage: reports.PerPage,
+			MaxPage: reports.MaxPage,
+			Count:   reports.Count,
+		},
+	}, nil
 }

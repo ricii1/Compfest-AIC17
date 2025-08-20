@@ -82,4 +82,17 @@ type (
 		ID     string              `json:"id"`
 		Status entity.ReportStatus `json:"status"`
 	}
+
+	StatusCount struct {
+		Status string
+		Count  int64
+	}
+	CountReportResponse struct {
+		Total      int64 `json:"total"`
+		Unverified int64 `json:"unverified"`
+		Verified   int64 `json:"verified"`
+		Rejected   int64 `json:"rejected"`
+		Handled    int64 `json:"handled"`
+		Completed  int64 `json:"completed"`
+	}
 )

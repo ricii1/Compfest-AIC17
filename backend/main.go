@@ -42,7 +42,7 @@ func run(server *gin.Engine) {
 		serve = ":" + port
 	}
 
-	myFigure := figure.NewColorFigure("Caknoo", "", "green", true)
+	myFigure := figure.NewColorFigure("RAPID", "", "blue", true)
 	myFigure.Print()
 
 	if err := server.Run(serve); err != nil {

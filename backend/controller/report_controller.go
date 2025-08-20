@@ -16,6 +16,8 @@ type (
 		GetReportById(ctx *gin.Context)
 		GetReportsByUserId(ctx *gin.Context)
 		UpdateReportStatus(ctx *gin.Context)
+		CountReportStatus(ctx *gin.Context)
+		GetReportsByStatus(ctx *gin.Context)
 	}
 
 	reportController struct {
@@ -125,5 +127,34 @@ func (c *reportController) UpdateReportStatus(ctx *gin.Context) {
 		return
 	}
 	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_REPORT_BY_ID, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *reportController) CountReportStatus(ctx *gin.Context) {
+	result, err := c.reportService.CountReportStatus(ctx.Request.Context())
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_REPORTS, err.Error(), nil)
+		ctx.JSON(http.StatusInternalServerError, res)
+		return
+	}
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_REPORTS, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *reportController) GetReportsByStatus(ctx *gin.Context) {
+	var req dto.PaginationRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	status := ctx.Param("status")
+	result, err := c.reportService.GetReportsByStatus(ctx.Request.Context(), status, req)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_REPORTS, err.Error(), nil)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_REPORTS, result)
 	ctx.JSON(http.StatusOK, res)
 }

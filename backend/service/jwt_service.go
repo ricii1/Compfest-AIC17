@@ -34,8 +34,8 @@ type jwtService struct {
 func NewJWTService() JWTService {
 	return &jwtService{
 		secretKey:     getSecretKey(),
-		issuer:        "Template",
-		accessExpiry:  time.Minute * 15,
+		issuer:        "rapid",
+		accessExpiry:  time.Hour * 24 * 7,
 		refreshExpiry: time.Hour * 24 * 7,
 	}
 }
@@ -43,7 +43,7 @@ func NewJWTService() JWTService {
 func getSecretKey() string {
 	secretKey := os.Getenv("JWT_SECRET")
 	if secretKey == "" {
-		secretKey = "Template"
+		secretKey = "rapid"
 	}
 	return secretKey
 }
