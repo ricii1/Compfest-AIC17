@@ -1,3 +1,9 @@
+import axios from "axios";
+import { useForm } from 'react-hook-form';
+import Swal from 'sweetalert2';
+
+import { setToSessionStorage } from '@/lib/helper';
+
 import Layout from '@/components/layout/Layout';
 import Seo from '@/components/Seo';
 import { Button } from '@/components/ui/button';
@@ -5,17 +11,13 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useForm } from 'react-hook-form';
+
 import { backendUrl } from '@/constant/env';
-import axios from "axios";
-import Swal from 'sweetalert2';
-import { setToSessionStorage } from '@/lib/helper';
 
 type LoginFormData = {
   email: string;

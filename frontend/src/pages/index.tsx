@@ -1,23 +1,26 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import axios from 'axios';
+import { useRouter } from 'next/router';
+import * as React from 'react';
+import { useEffect, useState } from 'react';
+
+import { getFromSessionStorage } from '@/lib/helper';
+
 import Layout from '@/components/layout/Layout';
 import Seo from '@/components/Seo';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
 import { backendUrl } from '@/constant/env';
-import { getFromSessionStorage } from '@/lib/helper';
 
 type ReportStatus = 'unverified' | 'verified' | 'handled' | 'rejected';
 
@@ -42,12 +45,6 @@ interface PaginationData {
   last_page: number;
   per_page: number;
   total: number;
-}
-
-interface ApiResponse {
-  status: boolean;
-  message: string;
-  data: PaginationData;
 }
 
 interface CountData {
@@ -104,8 +101,6 @@ export default function AdminDashboard() {
         { headers }
       );
 
-      console.log('API Response (Count):', response.data);
-
       if (response.status === 200 && response.data.status) {
         setCountData(response.data.data);
         // Also update totalRecords from count data for consistency
@@ -115,7 +110,6 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Error fetching count data:', error);
-      // Don't show error for count data, just use fallback
     } finally {
       setCountLoading(false);
     }
@@ -300,7 +294,7 @@ export default function AdminDashboard() {
     } else {
       // Calculate start and end based on current page
       let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-      let end = Math.min(totalPages, start + maxVisible - 1);
+      const end = Math.min(totalPages, start + maxVisible - 1);
 
       // Adjust start if we're near the end
       if (end - start + 1 < maxVisible) {

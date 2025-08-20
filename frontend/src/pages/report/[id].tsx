@@ -1,7 +1,10 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import axios from 'axios';
+import { useRouter } from 'next/router';
+import * as React from 'react';
+import { useEffect,useState } from 'react';
+
+import { getFromSessionStorage } from '@/lib/helper';
+
 import Layout from '@/components/layout/Layout';
 import Seo from '@/components/Seo';
 import { Badge } from '@/components/ui/badge';
@@ -12,8 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
 import { backendUrl } from '@/constant/env';
-import { getFromSessionStorage } from '@/lib/helper';
 
 type StatusVariant = 'verified' | 'rejected' | 'handled' | 'unverified';
 
