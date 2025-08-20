@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import * as React from 'react';
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { getFromSessionStorage } from '@/lib/helper';
 
@@ -49,6 +49,42 @@ export default function ReportDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to handle auth errors
+  const handleAuthError = (error: any) => {
+    if (axios.isAxiosError(error)) {
+      // Check for 401 (Unauthorized) or 403 (Forbidden)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.log('Authentication error, redirecting to login...');
+        // Clear token from storage
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('access_token');
+          localStorage.removeItem('access_token');
+        }
+        // Redirect to login
+        router.push('/login');
+        return true; // Indicates auth error was handled
+      }
+      // Check for 400 Bad Request that might indicate token issues
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.message || '';
+        if (errorMessage.toLowerCase().includes('token') ||
+          errorMessage.toLowerCase().includes('unauthorized') ||
+          errorMessage.toLowerCase().includes('invalid')) {
+          console.log('Token-related bad request, redirecting to login...');
+          // Clear token from storage
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('access_token');
+            localStorage.removeItem('access_token');
+          }
+          // Redirect to login
+          router.push('/login');
+          return true; // Indicates auth error was handled
+        }
+      }
+    }
+    return false; // Auth error was not handled
+  };
+
   // Fetch report data from API
   useEffect(() => {
     const fetchReport = async () => {
@@ -73,7 +109,11 @@ export default function ReportDetailPage() {
         }
       } catch (error) {
         console.error('Error fetching report:', error);
-        setError('Failed to load report. Please try again later.');
+        // Check if it's an auth error and handle redirect
+        if (!handleAuthError(error)) {
+          // If not auth error, show general error message
+          setError('Failed to load report. Please try again later.');
+        }
       } finally {
         setLoading(false);
       }
@@ -111,7 +151,11 @@ export default function ReportDetailPage() {
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      alert(`Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // Check if it's an auth error and handle redirect
+      if (!handleAuthError(error)) {
+        // If not auth error, show general error message
+        alert(`Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     } finally {
       setSubmitting(false);
     }

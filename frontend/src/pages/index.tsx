@@ -68,6 +68,42 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to handle auth errors
+  const handleAuthError = (error: any) => {
+    if (axios.isAxiosError(error)) {
+      // Check for 401 (Unauthorized) or 403 (Forbidden)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.log('Authentication error, redirecting to login...');
+        // Clear token from storage
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('access_token');
+          localStorage.removeItem('access_token');
+        }
+        // Redirect to login
+        router.push('/login');
+        return true; // Indicates auth error was handled
+      }
+      // Check for 400 Bad Request that might indicate token issues
+      if (error.response?.status === 400) {
+        const errorMessage = error.response?.data?.message || '';
+        if (errorMessage.toLowerCase().includes('token') ||
+          errorMessage.toLowerCase().includes('unauthorized') ||
+          errorMessage.toLowerCase().includes('invalid')) {
+          console.log('Token-related bad request, redirecting to login...');
+          // Clear token from storage
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('access_token');
+            localStorage.removeItem('access_token');
+          }
+          // Redirect to login
+          router.push('/login');
+          return true; // Indicates auth error was handled
+        }
+      }
+    }
+    return false; // Auth error was not handled
+  };
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -110,6 +146,11 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Error fetching count data:', error);
+      // Check if it's an auth error and handle redirect
+      if (!handleAuthError(error)) {
+        // If not auth error, just log it (don't show error for count data)
+        console.warn('Count data fetch failed, using fallback');
+      }
     } finally {
       setCountLoading(false);
     }
@@ -168,8 +209,12 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Error fetching reports:', error);
-      setError('Failed to load reports. Please try again later.');
-      setReports([]);
+      // Check if it's an auth error and handle redirect
+      if (!handleAuthError(error)) {
+        // If not auth error, show general error message
+        setError('Failed to load reports. Please try again later.');
+        setReports([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -250,8 +295,11 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      // You could add a toast notification here to show error to user
-      alert(`Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // Check if it's an auth error and handle redirect
+      if (!handleAuthError(error)) {
+        // If not auth error, show general error message
+        alert(`Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     } finally {
       setUpdatingStatus(null);
     }
