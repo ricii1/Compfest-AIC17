@@ -3,7 +3,9 @@ package repository
 import (
 	"context"
 	"fmt"
+	"os"
 
+	"cloud.google.com/go/pubsub/v2"
 	"github.com/Caknoooo/go-gin-clean-starter/dto"
 	"github.com/Caknoooo/go-gin-clean-starter/entity"
 	"gorm.io/gorm"
@@ -36,15 +38,42 @@ func NewReportRepository(db *gorm.DB) ReportRepository {
 }
 
 func (r *reportRepository) CreateReport(ctx context.Context, tx *gorm.DB, report entity.Report) (entity.Report, error) {
+	var db *gorm.DB
 	if tx == nil {
-		tx = r.db
+		db = r.db
+	} else {
+		db = tx
 	}
 
-	if err := tx.WithContext(ctx).Create(&report).Error; err != nil {
+	var createdReport entity.Report
+	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&report).Error; err != nil {
+			return err
+		}
+		gcp_project_id := os.Getenv("GCP_PROJECT_ID")
+		topic_id := os.Getenv("GCP_TOPIC_ID")
+		client, err := pubsub.NewClient(ctx, gcp_project_id)
+		if err != nil {
+			return err
+		}
+		defer client.Close()
+
+		publisher := client.Publisher(topic_id)
+		result := publisher.Publish(ctx, &pubsub.Message{
+			Data: []byte(fmt.Sprintf(`{"report_id": %s, "text": "%s", "image_url": "%s"}`, report.ID, report.Text, report.Image)),
+		})
+		_, err = result.Get(ctx)
+		if err != nil {
+			return err
+		}
+		createdReport = report
+		return nil
+	})
+
+	if err != nil {
 		return entity.Report{}, err
 	}
-
-	return report, nil
+	return createdReport, nil
 }
 
 func (r *reportRepository) GetAllReportsWithPagination(
@@ -182,7 +211,6 @@ func (r *reportRepository) CountReportStatus(ctx context.Context, tx *gorm.DB) (
 		}
 		amount.Total += count.Count
 	}
-	fmt.Println("Counts repo:", amount)
 	return amount, nil
 }
 

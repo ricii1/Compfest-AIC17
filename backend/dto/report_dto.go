@@ -49,6 +49,7 @@ type (
 		Image    string `json:"image"`
 		Location string `json:"location"`
 	}
+
 	ReportResponse struct {
 		ID             string `json:"id"`
 		Text           string `json:"text"`
