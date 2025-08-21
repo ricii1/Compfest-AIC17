@@ -23,5 +23,6 @@ func Reports(route *gin.Engine, injector *do.Injector) {
 		routes.POST("/:id/status", middleware.Authenticate(jwtService), reportController.UpdateReportStatus)
 		routes.GET("/count", middleware.Authenticate(jwtService), reportController.CountReportStatus)
 		routes.GET("/status/:status", middleware.Authenticate(jwtService), reportController.GetReportsByStatus)
+		routes.POST("/inference_status", reportController.InferenceStatus)
 	}
 }

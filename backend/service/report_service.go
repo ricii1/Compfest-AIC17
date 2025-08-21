@@ -24,6 +24,7 @@ type (
 		UpdateReportStatus(ctx context.Context, reportId string, status entity.ReportStatus) (dto.UpdateStatusReportResponse, error)
 		CountReportStatus(ctx context.Context) (dto.CountReportResponse, error)
 		GetReportsByStatus(ctx context.Context, status string, req dto.PaginationRequest) (dto.ReportPaginationResponse, error)
+		InferenceStatus(ctx context.Context, req dto.InferenceRequest, token string) (dto.InferenceResponse, error)
 	}
 
 	reportService struct {
@@ -89,7 +90,7 @@ func (s *reportService) CreateReport(ctx context.Context, req dto.CreateReportRe
 		UserID:   user_id,
 		Status:   entity.StatusUnverified,
 		Location: req.Location,
-		TagID:    nil,
+		TagID:    uuid.Nil,
 	}
 
 	createdReport, err := s.reportRepo.CreateReport(ctx, nil, report)
@@ -131,10 +132,10 @@ func (s *reportService) GetAllReports(ctx context.Context, req dto.PaginationReq
 			UserID:     report.UserID,
 			Username:   user.Name,
 			TagID: func() string {
-				if report.TagID != nil {
-					return *report.TagID
+				if report.TagID == uuid.Nil {
+					return ""
 				}
-				return ""
+				return report.TagID.String()
 			}(),
 			PredConfidence: func() int {
 				if report.PredConfidence != nil {
@@ -178,10 +179,10 @@ func (s *reportService) GetReportById(ctx context.Context, reportId string) (dto
 		UserID:     report.UserID,
 		Username:   user.Name,
 		TagID: func() string {
-			if report.TagID != nil {
-				return *report.TagID
+			if report.TagID == uuid.Nil {
+				return ""
 			}
-			return ""
+			return report.TagID.String()
 		}(),
 		PredConfidence: func() int {
 			if report.PredConfidence != nil {
@@ -215,10 +216,10 @@ func (s *reportService) GetReportsByUserId(ctx context.Context, userId string, r
 			UserID:     report.UserID,
 			Username:   user.Name,
 			TagID: func() string {
-				if report.TagID != nil {
-					return *report.TagID
+				if report.TagID == uuid.Nil {
+					return ""
 				}
-				return ""
+				return report.TagID.String()
 			}(),
 			PredConfidence: func() int {
 				if report.PredConfidence != nil {
@@ -295,10 +296,10 @@ func (s *reportService) GetReportsByStatus(ctx context.Context, status string, r
 			UserID:     report.UserID,
 			Username:   user.Name,
 			TagID: func() string {
-				if report.TagID != nil {
-					return *report.TagID
+				if report.TagID == uuid.Nil {
+					return ""
 				}
-				return ""
+				return report.TagID.String()
 			}(),
 			PredConfidence: func() int {
 				if report.PredConfidence != nil {
@@ -319,4 +320,29 @@ func (s *reportService) GetReportsByStatus(ctx context.Context, status string, r
 			Count:   reports.Count,
 		},
 	}, nil
+}
+
+func (s *reportService) InferenceStatus(ctx context.Context, req dto.InferenceRequest, token string) (dto.InferenceResponse, error) {
+	webhook_token := os.Getenv("X_WEBHOOK_TOKEN")
+	if webhook_token == "" {
+		return dto.InferenceResponse{}, dto.ErrGetReportById
+	}
+	if webhook_token != token {
+		return dto.InferenceResponse{}, dto.ErrGetReportById
+	}
+	report_id := req.ReportID
+	report, err := s.reportRepo.GetReportById(ctx, nil, report_id)
+	if err != nil {
+		return dto.InferenceResponse{}, dto.ErrGetReportById
+	}
+	res, err := s.reportRepo.UpdateReportInference(ctx, nil, report, req.Class, req.Location)
+	if err != nil {
+		return dto.InferenceResponse{}, dto.ErrUpdateReportInference
+	}
+	return dto.InferenceResponse{
+		TagID:    res.ID.String(),
+		Class:    res.Class,
+		Location: res.Location,
+	}, nil
+	// return res, nil
 }

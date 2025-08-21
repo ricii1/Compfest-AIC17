@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Caknoooo/go-gin-clean-starter/dto"
@@ -18,6 +19,7 @@ type (
 		UpdateReportStatus(ctx *gin.Context)
 		CountReportStatus(ctx *gin.Context)
 		GetReportsByStatus(ctx *gin.Context)
+		InferenceStatus(ctx *gin.Context)
 	}
 
 	reportController struct {
@@ -150,6 +152,25 @@ func (c *reportController) GetReportsByStatus(ctx *gin.Context) {
 	}
 	status := ctx.Param("status")
 	result, err := c.reportService.GetReportsByStatus(ctx.Request.Context(), status, req)
+	if err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_REPORTS, err.Error(), nil)
+		ctx.JSON(http.StatusBadRequest, res)
+		return
+	}
+	res := utils.BuildResponseSuccess(dto.MESSAGE_SUCCESS_GET_REPORTS, result)
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (c *reportController) InferenceStatus(ctx *gin.Context) {
+	fmt.Println("TES")
+	var req dto.InferenceRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err.Error(), nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	token := ctx.GetHeader("X-WEBHOOK-TOKEN")
+	result, err := c.reportService.InferenceStatus(ctx.Request.Context(), req, token)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_REPORTS, err.Error(), nil)
 		ctx.JSON(http.StatusBadRequest, res)

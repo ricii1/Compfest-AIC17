@@ -38,7 +38,6 @@ func (r *userRepository) Register(ctx context.Context, tx *gorm.DB, user entity.
 	if tx == nil {
 		tx = r.db
 	}
-
 	if err := tx.WithContext(ctx).Create(&user).Error; err != nil {
 		return entity.User{}, err
 	}

@@ -1,5 +1,7 @@
 package entity
 
+import "github.com/google/uuid"
+
 type ReportStatus string
 
 const (
@@ -21,10 +23,10 @@ type Report struct {
 	Location       string       `gorm:"type:varchar(255)" json:"location"`
 
 	UserID string `gorm:"type:char(32);not null"`
-	User   User   `gorm:"foreignKey:UserID"`
+	User   User   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 
-	TagID *string `gorm:"type:char(32);"` // Pointer untuk nullable
-	Tag   *Tag    `gorm:"foreignKey:TagID"`
+	TagID uuid.UUID `gorm:"type:uuid"`
+	Tag   Tag       `gorm:"foreignKey:TagID"`
 
 	Timestamp
 }

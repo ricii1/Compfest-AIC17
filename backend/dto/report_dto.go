@@ -33,6 +33,7 @@ var (
 	ErrGetReports            = errors.New("gagal mendapatkan laporan")
 	ErrGetReportById         = errors.New("gagal mendapatkan laporan dari id")
 	ErrUpdateReportStatus    = errors.New("gagal memperbarui status laporan")
+	ErrUpdateReportInference = errors.New("gagal memperbarui inferensi laporan")
 
 // ErrCreateUser             = errors.New("failed to create user")
 )
@@ -95,5 +96,15 @@ type (
 		Rejected   int64 `json:"rejected"`
 		Handled    int64 `json:"handled"`
 		Completed  int64 `json:"completed"`
+	}
+	InferenceRequest struct {
+		ReportID string `json:"report_id"`
+		Class    string `json:"class"`
+		Location string `json:"location"`
+	}
+	InferenceResponse struct {
+		TagID    string `json:"tag_id"`
+		Class    string `json:"class"`
+		Location string `json:"location"`
 	}
 )
