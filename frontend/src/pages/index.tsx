@@ -37,6 +37,13 @@ interface Report {
   username: string;
   pred_confidence: number;
   created_at: string;
+  tag: Tag;
+}
+
+interface Tag {
+  class: string;
+  id: string;
+  location: string;
 }
 
 interface PaginationData {
@@ -571,10 +578,14 @@ export default function AdminDashboard() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {report.tag_id ? (
-                            <Badge variant="outline">
-                              Tag ID: {report.tag_id}
-                            </Badge>
+                          {report.tag && report.tag.class ? (
+                            <div className='flex flex-wrap gap-1'>
+                              {report.tag.class.split(',').map((tag, index) => (
+                                <Badge key={index} variant="outline">
+                                  {tag.trim()}
+                                </Badge>
+                              ))}
+                            </div>
                           ) : (
                             <span className="text-gray-400">No Tag</span>
                           )}

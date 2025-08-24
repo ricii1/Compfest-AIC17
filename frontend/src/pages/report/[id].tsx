@@ -33,6 +33,13 @@ interface ReportData {
   username: string;
   pred_confidence: number;
   created_at: string;
+  tag: Tag;
+}
+
+interface Tag {
+  class: string;
+  id: string;
+  location: string;
 }
 
 interface ApiResponse {
@@ -278,29 +285,15 @@ export default function ReportDetailPage() {
               </div>
             </div>
 
-            {/* Engagement Stats */}
-            <div className='mb-4 grid grid-cols-2 gap-4'>
-              <div>
-                <h2 className='text-lg font-semibold text-gray-800'>Upvotes</h2>
-                <p className='text-gray-600 mt-2 flex items-center'>
-                  👍 {report.upvotes}
-                </p>
-              </div>
-              <div>
-                <h2 className='text-lg font-semibold text-gray-800'>Shares</h2>
-                <p className='text-gray-600 mt-2 flex items-center'>
-                  🔗 {report.share_count}
-                </p>
-              </div>
-            </div>
-
             {/* Tag */}
             {report.tag_id && (
               <div className='mb-4'>
                 <h2 className='text-lg font-semibold text-gray-800'>Tag</h2>
-                <Badge variant="outline" className='mt-2'>
-                  {report.tag_id}
-                </Badge>
+                {report.tag.class.split(',').map((tag, index) => (
+                  <Badge key={index} variant="outline">
+                    {tag.trim()}
+                  </Badge>
+                ))}
               </div>
             )}
 
