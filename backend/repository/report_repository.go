@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"cloud.google.com/go/pubsub/v2"
 	"github.com/Caknoooo/go-gin-clean-starter/dto"
@@ -24,7 +25,7 @@ type (
 		UpdateReportStatus(ctx context.Context, tx *gorm.DB, reportId string, status entity.ReportStatus) (dto.UpdateStatusReportResponse, error)
 		CountReportStatus(ctx context.Context, tx *gorm.DB) (dto.CountReportResponse, error)
 		GetReportsByStatus(ctx context.Context, tx *gorm.DB, status entity.ReportStatus, req dto.PaginationRequest) (dto.GetAllReportResponse, error)
-		UpdateReportInference(ctx context.Context, tx *gorm.DB, report entity.Report, class string, location string) (entity.Tag, error)
+		UpdateReportInference(ctx context.Context, tx *gorm.DB, report entity.Report, class string, location string) ([]entity.Tag, error)
 	}
 
 	reportRepository struct {
@@ -45,6 +46,14 @@ func (r *reportRepository) CreateReport(ctx context.Context, tx *gorm.DB, report
 	} else {
 		db = tx
 	}
+
+	tag := entity.Tag{
+		Class:    "unclassified",
+		Location: report.Location,
+	}
+
+	report.TagID = tag.ID
+	report.Tag = tag
 
 	var createdReport entity.Report
 	err := db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -183,7 +192,7 @@ func (r *reportRepository) UpdateReportStatus(ctx context.Context, tx *gorm.DB, 
 	}
 
 	return dto.UpdateStatusReportResponse{
-		ID:     report.ID,
+		ID:     report.ID.String(),
 		Status: report.Status,
 	}, nil
 }
@@ -252,23 +261,31 @@ func (r *reportRepository) GetReportsByStatus(ctx context.Context, tx *gorm.DB, 
 	}, err
 }
 
-func (r *reportRepository) UpdateReportInference(ctx context.Context, tx *gorm.DB, report entity.Report, class string, location string) (entity.Tag, error) {
+func (r *reportRepository) UpdateReportInference(ctx context.Context, tx *gorm.DB, report entity.Report, class string, location string) ([]entity.Tag, error) {
 	if tx == nil {
 		tx = r.db
 	}
 
-	var tag entity.Tag
-	tag.Reports = append(tag.Reports, report)
-	tag.Class = class
-	if location == "" {
-		tag.Location = report.Location
-	} else {
-		tag.Location = location
+	var tags []entity.Tag
+	classes := strings.Split(class, ",")
+
+	for _, cls := range classes {
+		var tag entity.Tag
+		tag.Reports = append(tag.Reports, report)
+		tag.Class = cls
+		
+		if location == "" {
+			tag.Location = report.Location
+		} else {
+			tag.Location = location
+		}
+
+		if err := tx.WithContext(ctx).Save(&tag).Error; err != nil {
+			return nil, err
+		}
+
+		tags = append(tags, tag)
 	}
 
-	if err := tx.WithContext(ctx).Save(&tag).Error; err != nil {
-		return entity.Tag{}, err
-	}
-
-	return tag, nil
+	return tags, nil
 }
