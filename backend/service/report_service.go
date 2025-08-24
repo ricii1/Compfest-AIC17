@@ -117,10 +117,6 @@ func (s *reportService) GetAllReports(ctx context.Context, req dto.PaginationReq
 
 	var datas []dto.ReportResponse
 	for _, report := range reports.Reports {
-		user, err := s.userRepo.GetUserById(ctx, nil, report.UserID)
-		if err != nil {
-			return dto.ReportPaginationResponse{}, dto.ErrGetReportById
-		}
 		data := dto.ReportResponse{
 			ID:         report.ID.String(),
 			Text:       report.Text,
@@ -130,7 +126,7 @@ func (s *reportService) GetAllReports(ctx context.Context, req dto.PaginationReq
 			Upvotes:    report.Upvotes,
 			ShareCount: report.ShareCount,
 			UserID:     report.UserID,
-			Username:   user.Name,
+			Username:   report.User.Name, // Gunakan preloaded User
 			TagID: func() string {
 				if report.TagID == uuid.Nil {
 					return ""
@@ -143,6 +139,8 @@ func (s *reportService) GetAllReports(ctx context.Context, req dto.PaginationReq
 				}
 				return 0
 			}(),
+			User: report.User, // Tambahkan nested object
+			Tag:  report.Tag,  // Tambahkan nested object
 		}
 		datas = append(datas, data)
 	}
@@ -163,10 +161,6 @@ func (s *reportService) GetReportById(ctx context.Context, reportId string) (dto
 	if err != nil {
 		return dto.ReportResponse{}, dto.ErrGetReportById
 	}
-	user, err := s.userRepo.GetUserById(ctx, nil, report.UserID)
-	if err != nil {
-		return dto.ReportResponse{}, dto.ErrGetUserById
-	}
 
 	return dto.ReportResponse{
 		ID:         report.ID.String(),
@@ -177,7 +171,7 @@ func (s *reportService) GetReportById(ctx context.Context, reportId string) (dto
 		Upvotes:    report.Upvotes,
 		ShareCount: report.ShareCount,
 		UserID:     report.UserID,
-		Username:   user.Name,
+		Username:   report.User.Name, // Gunakan preloaded User
 		TagID: func() string {
 			if report.TagID == uuid.Nil {
 				return ""
@@ -190,6 +184,8 @@ func (s *reportService) GetReportById(ctx context.Context, reportId string) (dto
 			}
 			return 0
 		}(),
+		User: report.User, // Tambahkan nested object
+		Tag:  report.Tag,  // Tambahkan nested object
 	}, nil
 }
 
@@ -344,8 +340,8 @@ func (s *reportService) InferenceStatus(ctx context.Context, req dto.InferenceRe
 
 	for _, result := range res {
 		response.Data = append(response.Data, dto.InferenceTag{
-			TagID: result.ID.String(),
-			Class: result.Class,
+			TagID:    result.ID.String(),
+			Class:    result.Class,
 			Location: result.Location,
 		})
 	}
