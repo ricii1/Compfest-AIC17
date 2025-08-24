@@ -52,18 +52,20 @@ type (
 	}
 
 	ReportResponse struct {
-		ID             string `json:"id"`
-		Text           string `json:"text"`
-		Image          string `json:"image"`
-		Location       string `json:"location"`
-		Status         string `json:"status"`
-		Upvotes        int    `json:"upvotes"`
-		ShareCount     int    `json:"share_count"`
-		TagID          string `json:"tag_id"`
-		UserID         string `json:"user_id"`
-		Username       string `json:"username"`
-		PredConfidence int    `json:"pred_confidence"`
-		CreatedAt      string `json:"created_at"`
+		ID             string      `json:"id"`
+		Text           string      `json:"text"`
+		Image          string      `json:"image"`
+		Location       string      `json:"location"`
+		Status         string      `json:"status"`
+		Upvotes        int         `json:"upvotes"`
+		ShareCount     int         `json:"share_count"`
+		TagID          string      `json:"tag_id"`
+		UserID         string      `json:"user_id"`
+		Username       string      `json:"username"`
+		PredConfidence int         `json:"pred_confidence"`
+		CreatedAt      string      `json:"created_at"`
+		User           entity.User `json:"user,omitempty"`
+		Tag            entity.Tag  `json:"tag,omitempty"`
 	}
 
 	ReportPaginationResponse struct {
