@@ -22,11 +22,11 @@ type Report struct {
 	ShareCount     int          `gorm:"default:0" json:"share_count"`
 	Location       string       `gorm:"type:varchar(255)" json:"location"`
 
-	UserID string `gorm:"type:char(32);not null"`
-	User   User   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	UserID string `gorm:"type:char(32);not null" json:"user_id"`
+	User   User   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user"`
 
-	TagID uuid.UUID `gorm:"type:uuid"`
-	Tag   Tag       `gorm:"foreignKey:TagID"`
+	TagID uuid.UUID `gorm:"type:uuid" json:"tag_id"`
+	Tag   Tag       `gorm:"foreignKey:TagID" json:"tag"`
 
 	Timestamp
 }

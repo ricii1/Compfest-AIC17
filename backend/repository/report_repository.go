@@ -110,7 +110,7 @@ func (r *reportRepository) GetAllReportsWithPagination(
 		return dto.GetAllReportResponse{}, err
 	}
 
-	if err := query.Scopes(Paginate(req)).Find(&reports).Error; err != nil {
+	if err := query.Preload("Tag").Preload("User").Scopes(Paginate(req)).Find(&reports).Error; err != nil {
 		return dto.GetAllReportResponse{}, err
 	}
 
@@ -132,7 +132,7 @@ func (r *reportRepository) GetReportById(ctx context.Context, tx *gorm.DB, repor
 	}
 
 	var report entity.Report
-	if err := tx.WithContext(ctx).First(&report, "id = ?", reportId).Error; err != nil {
+	if err := tx.WithContext(ctx).Preload("Tag").Preload("User").First(&report, "id = ?", reportId).Error; err != nil {
 		return entity.Report{}, err
 	}
 
@@ -160,7 +160,7 @@ func (r *reportRepository) GetReportsByUserId(ctx context.Context, tx *gorm.DB, 
 		return dto.GetAllReportResponse{}, err
 	}
 
-	if err := query.Scopes(Paginate(req)).Find(&reports).Error; err != nil {
+	if err := query.Preload("Tag").Preload("User").Scopes(Paginate(req)).Find(&reports).Error; err != nil {
 		return dto.GetAllReportResponse{}, err
 	}
 
@@ -245,7 +245,7 @@ func (r *reportRepository) GetReportsByStatus(ctx context.Context, tx *gorm.DB, 
 		return dto.GetAllReportResponse{}, err
 	}
 
-	if err := query.Scopes(Paginate(req)).Find(&reports).Error; err != nil {
+	if err := query.Preload("Tag").Preload("User").Scopes(Paginate(req)).Find(&reports).Error; err != nil {
 		return dto.GetAllReportResponse{}, err
 	}
 
@@ -273,7 +273,7 @@ func (r *reportRepository) UpdateReportInference(ctx context.Context, tx *gorm.D
 		var tag entity.Tag
 		tag.Reports = append(tag.Reports, report)
 		tag.Class = cls
-		
+
 		if location == "" {
 			tag.Location = report.Location
 		} else {
