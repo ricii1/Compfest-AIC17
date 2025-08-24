@@ -197,10 +197,6 @@ func (s *reportService) GetReportsByUserId(ctx context.Context, userId string, r
 
 	var datas []dto.ReportResponse
 	for _, report := range reports.Reports {
-		user, err := s.userRepo.GetUserById(ctx, nil, report.UserID)
-		if err != nil {
-			return dto.ReportPaginationResponse{}, dto.ErrGetReportById
-		}
 		data := dto.ReportResponse{
 			ID:         report.ID.String(),
 			Text:       report.Text,
@@ -210,7 +206,7 @@ func (s *reportService) GetReportsByUserId(ctx context.Context, userId string, r
 			Upvotes:    report.Upvotes,
 			ShareCount: report.ShareCount,
 			UserID:     report.UserID,
-			Username:   user.Name,
+			Username:   report.User.Name, // Gunakan preloaded User
 			TagID: func() string {
 				if report.TagID == uuid.Nil {
 					return ""
@@ -223,6 +219,8 @@ func (s *reportService) GetReportsByUserId(ctx context.Context, userId string, r
 				}
 				return 0
 			}(),
+			User: report.User, // Tambahkan nested object
+			Tag:  report.Tag,  // Tambahkan nested object
 		}
 		datas = append(datas, data)
 	}
@@ -277,10 +275,6 @@ func (s *reportService) GetReportsByStatus(ctx context.Context, status string, r
 
 	var datas []dto.ReportResponse
 	for _, report := range reports.Reports {
-		user, err := s.userRepo.GetUserById(ctx, nil, report.UserID)
-		if err != nil {
-			return dto.ReportPaginationResponse{}, dto.ErrGetUserById
-		}
 		data := dto.ReportResponse{
 			ID:         report.ID.String(),
 			Text:       report.Text,
@@ -290,7 +284,7 @@ func (s *reportService) GetReportsByStatus(ctx context.Context, status string, r
 			Upvotes:    report.Upvotes,
 			ShareCount: report.ShareCount,
 			UserID:     report.UserID,
-			Username:   user.Name,
+			Username:   report.User.Name, // Gunakan preloaded User
 			TagID: func() string {
 				if report.TagID == uuid.Nil {
 					return ""
@@ -303,6 +297,8 @@ func (s *reportService) GetReportsByStatus(ctx context.Context, status string, r
 				}
 				return 0
 			}(),
+			User: report.User, // Tambahkan nested object
+			Tag:  report.Tag,  // Tambahkan nested object
 		}
 		datas = append(datas, data)
 	}
