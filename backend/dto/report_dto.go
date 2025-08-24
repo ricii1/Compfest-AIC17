@@ -102,9 +102,12 @@ type (
 		Class    string `json:"class"`
 		Location string `json:"location"`
 	}
-	InferenceResponse struct {
+	InferenceTag struct {
 		TagID    string `json:"tag_id"`
 		Class    string `json:"class"`
 		Location string `json:"location"`
+	}
+	InferenceResponse struct {
+		Data []InferenceTag `json:"data"`
 	}
 )

@@ -70,7 +70,7 @@ func (s *reportService) CreateReport(ctx context.Context, req dto.CreateReportRe
 		return dto.CreateReportResponse{}, dto.ErrUserNotFound
 	}
 
-	reportID := uuid.New().String()
+	reportID := uuid.New()
 	var imagePath string
 
 	// Handle Image validation and processing
@@ -102,7 +102,7 @@ func (s *reportService) CreateReport(ctx context.Context, req dto.CreateReportRe
 	}
 
 	return dto.CreateReportResponse{
-		ID:       createdReport.ID,
+		ID:       createdReport.ID.String(),
 		Text:     createdReport.Text,
 		Image:    createdReport.Image,
 		Location: createdReport.Location,
@@ -122,7 +122,7 @@ func (s *reportService) GetAllReports(ctx context.Context, req dto.PaginationReq
 			return dto.ReportPaginationResponse{}, dto.ErrGetReportById
 		}
 		data := dto.ReportResponse{
-			ID:         report.ID,
+			ID:         report.ID.String(),
 			Text:       report.Text,
 			Image:      report.Image,
 			Location:   report.Location,
@@ -169,7 +169,7 @@ func (s *reportService) GetReportById(ctx context.Context, reportId string) (dto
 	}
 
 	return dto.ReportResponse{
-		ID:         report.ID,
+		ID:         report.ID.String(),
 		Text:       report.Text,
 		Image:      report.Image,
 		Location:   report.Location,
@@ -206,7 +206,7 @@ func (s *reportService) GetReportsByUserId(ctx context.Context, userId string, r
 			return dto.ReportPaginationResponse{}, dto.ErrGetReportById
 		}
 		data := dto.ReportResponse{
-			ID:         report.ID,
+			ID:         report.ID.String(),
 			Text:       report.Text,
 			Image:      report.Image,
 			Location:   report.Location,
@@ -286,7 +286,7 @@ func (s *reportService) GetReportsByStatus(ctx context.Context, status string, r
 			return dto.ReportPaginationResponse{}, dto.ErrGetUserById
 		}
 		data := dto.ReportResponse{
-			ID:         report.ID,
+			ID:         report.ID.String(),
 			Text:       report.Text,
 			Image:      report.Image,
 			Location:   report.Location,
@@ -339,10 +339,16 @@ func (s *reportService) InferenceStatus(ctx context.Context, req dto.InferenceRe
 	if err != nil {
 		return dto.InferenceResponse{}, dto.ErrUpdateReportInference
 	}
-	return dto.InferenceResponse{
-		TagID:    res.ID.String(),
-		Class:    res.Class,
-		Location: res.Location,
-	}, nil
-	// return res, nil
+
+	var response dto.InferenceResponse
+
+	for _, result := range res {
+		response.Data = append(response.Data, dto.InferenceTag{
+			TagID: result.ID.String(),
+			Class: result.Class,
+			Location: result.Location,
+		})
+	}
+
+	return response, nil
 }

@@ -13,7 +13,7 @@ const (
 )
 
 type Report struct {
-	ID             string       `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	ID             uuid.UUID    `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
 	Text           string       `gorm:"type:text" json:"text"`
 	Image          string       `gorm:"type:varchar(500)" json:"image"`
 	Status         ReportStatus `gorm:"type:varchar(50);not null;default:'unverified'" json:"status"`
