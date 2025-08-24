@@ -528,7 +528,6 @@ export default function AdminDashboard() {
                       <TableHead className="min-w-[150px]">Location</TableHead>
                       <TableHead>User</TableHead>
                       <TableHead>Tag</TableHead>
-                      <TableHead>Created</TableHead>
                       <TableHead className="w-[200px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -589,14 +588,6 @@ export default function AdminDashboard() {
                           ) : (
                             <span className="text-gray-400">No Tag</span>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-xs text-gray-500">
-                            {report.created_at ?
-                              new Date(report.created_at).toLocaleDateString() :
-                              'No date'
-                            }
-                          </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-1">

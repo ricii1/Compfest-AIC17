@@ -260,31 +260,6 @@ export default function ReportDetailPage() {
               </div>
             )}
 
-            {/* Created At */}
-            <div className='mb-4'>
-              <h2 className='text-lg font-semibold text-gray-800'>Created At</h2>
-              <p className='text-gray-600 mt-2'>
-                {report.created_at ?
-                  new Date(report.created_at).toLocaleString() :
-                  'No date available'
-                }
-              </p>
-            </div>
-
-            {/* Confidence */}
-            <div className='mb-4'>
-              <h2 className='text-lg font-semibold text-gray-800'>AI Confidence</h2>
-              <div className='flex items-center mt-2'>
-                <span className='text-sm font-medium'>{report.pred_confidence}%</span>
-                <div className='ml-2 w-24 bg-gray-200 rounded-full h-2'>
-                  <div
-                    className='bg-blue-600 h-2 rounded-full'
-                    style={{ width: `${Math.max(report.pred_confidence, 5)}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-
             {/* Tag */}
             {report.tag_id && (
               <div className='mb-4'>
